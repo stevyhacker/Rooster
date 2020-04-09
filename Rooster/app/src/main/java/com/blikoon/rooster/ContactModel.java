@@ -5,9 +5,6 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by gakwaya on 4/16/2016.
- */
 public class ContactModel {
 
     private static ContactModel sContactModel;
@@ -27,7 +24,6 @@ public class ContactModel {
     }
 
     private void populateWithInitialContacts(Context context) {
-        //Create the Foods and add them to the list;
 
         Contact contact1 = new Contact("gakwaya@salama.im");
         mContacts.add(contact1);

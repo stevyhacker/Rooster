@@ -26,9 +26,6 @@ import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.io.IOException;
 
-/**
- * Updated by gakwaya on Oct/08/2017.
- */
 public class RoosterConnection implements ConnectionListener {
 
     private static final String TAG = "RoosterConnection";

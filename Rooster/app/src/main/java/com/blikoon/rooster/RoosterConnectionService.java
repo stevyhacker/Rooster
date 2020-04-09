@@ -14,9 +14,7 @@ import org.jivesoftware.smack.XMPPException;
 
 import java.io.IOException;
 
-/**
- * Created by gakwaya on 4/28/2016.
- */
+
 public class RoosterConnectionService extends Service {
     private static final String TAG = "RoosterService";
 
@@ -83,7 +81,6 @@ public class RoosterConnectionService extends Service {
 
     }
 
-
     public void start() {
         Log.d(TAG, " Service Start() function called.");
         if (!mActive) {
@@ -103,7 +100,6 @@ public class RoosterConnectionService extends Service {
                 });
                 mThread.start();
             }
-
 
         }
 

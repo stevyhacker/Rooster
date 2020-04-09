@@ -71,28 +71,21 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                switch (action) {
-                    case RoosterConnectionService.NEW_MESSAGE:
-                        String from = intent.getStringExtra(RoosterConnectionService.BUNDLE_FROM_JID);
-                        String body = intent.getStringExtra(RoosterConnectionService.BUNDLE_MESSAGE_BODY);
+                if (RoosterConnectionService.NEW_MESSAGE.equals(action)) {
+                    String from = intent.getStringExtra(RoosterConnectionService.BUNDLE_FROM_JID);
+                    String body = intent.getStringExtra(RoosterConnectionService.BUNDLE_MESSAGE_BODY);
 
-                        if (from.equals(contactJid)) {
-                            ChatMessage chatMessage = new ChatMessage(body, System.currentTimeMillis(), ChatMessage.Type.RECEIVED);
-                            mChatView.addMessage(chatMessage);
-
-                        } else {
-                            Log.d(TAG, "Got a message from jid :" + from);
-                        }
-
-                        return;
+                    if (from.equals(contactJid)) {
+                        ChatMessage chatMessage = new ChatMessage(body, System.currentTimeMillis(), ChatMessage.Type.RECEIVED);
+                        mChatView.addMessage(chatMessage);
+                    } else {
+                        Log.d(TAG, "Got a message from jid :" + from);
+                    }
                 }
-
             }
         };
 
         IntentFilter filter = new IntentFilter(RoosterConnectionService.NEW_MESSAGE);
         registerReceiver(mBroadcastReceiver, filter);
-
-
     }
 }

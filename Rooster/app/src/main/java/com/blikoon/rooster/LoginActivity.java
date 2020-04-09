@@ -1,7 +1,5 @@
 package com.blikoon.rooster;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +9,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,33 +28,26 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
 
-    /**
-     * Id to identity READ_CONTACTS permission request.
-     */
-    private static final int REQUEST_READ_CONTACTS = 0;
-
-
-    // UI references.
-    private AutoCompleteTextView mJidView;
-    private EditText mPasswordView;
-    private View mProgressView;
-    private View mLoginFormView;
+    private AutoCompleteTextView jidTxtView;
+    private EditText passwordEditTxt;
     private BroadcastReceiver mBroadcastReceiver;
-    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        //Show
-        // Set up the login form.
-        mJidView = (AutoCompleteTextView) findViewById(R.id.email);
+        jidTxtView = (AutoCompleteTextView) findViewById(R.id.email);
+        passwordEditTxt = (EditText) findViewById(R.id.password);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        if (BuildConfig.DEBUG) {
+            jidTxtView.setText("stevyhacker@conversations.im");
+            passwordEditTxt.setText("stevan33");
+        }
+
+        passwordEditTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
+                if (id == EditorInfo.IME_NULL) {
                     attemptLogin();
                     return true;
                 }
@@ -70,10 +62,6 @@ public class LoginActivity extends AppCompatActivity {
                 attemptLogin();
             }
         });
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
-        mContext = this;
 
     }
 
@@ -93,9 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                 String action = intent.getAction();
                 if (RoosterConnectionService.UI_AUTHENTICATED.equals(action)) {
                     Log.d(TAG, "Got a broadcast to show the main app window");
-                    //Show the main app window
-                    showProgress(false);
-                    Intent i2 = new Intent(mContext, ContactListActivity.class);
+                    Intent i2 = new Intent(LoginActivity.this, ContactListActivity.class);
                     startActivity(i2);
                     finish();
                 }
@@ -114,31 +100,31 @@ public class LoginActivity extends AppCompatActivity {
     private void attemptLogin() {
 
         // Reset errors.
-        mJidView.setError(null);
-        mPasswordView.setError(null);
+        jidTxtView.setError(null);
+        passwordEditTxt.setError(null);
 
         // Store values at the time of the login attempt.
-        String email = mJidView.getText().toString();
-        String password = mPasswordView.getText().toString();
+        String email = jidTxtView.getText().toString();
+        String password = passwordEditTxt.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
+            passwordEditTxt.setError(getString(R.string.error_invalid_password));
+            focusView = passwordEditTxt;
             cancel = true;
         }
 
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
-            mJidView.setError(getString(R.string.error_field_required));
-            focusView = mJidView;
+            jidTxtView.setError(getString(R.string.error_field_required));
+            focusView = jidTxtView;
             cancel = true;
         } else if (!isEmailValid(email)) {
-            mJidView.setError(getString(R.string.error_invalid_jid));
-            focusView = mJidView;
+            jidTxtView.setError(getString(R.string.error_invalid_jid));
+            focusView = jidTxtView;
             cancel = true;
         }
 
@@ -147,12 +133,6 @@ public class LoginActivity extends AppCompatActivity {
             // form field with an error.
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            //showProgress(true);
-            //This is where the login login is fired up.
-//            Log.d(TAG,"Jid and password are valid ,proceeding with login.");
-//            startActivity(new Intent(this,ContactListActivity.class));
 
             //Save the credentials and login
             saveCredentialsAndLogin();
@@ -164,10 +144,10 @@ public class LoginActivity extends AppCompatActivity {
         Log.d(TAG, "saveCredentialsAndLogin() called.");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.edit()
-                .putString("xmpp_jid", mJidView.getText().toString())
-                .putString("xmpp_password", mPasswordView.getText().toString())
+                .putString("xmpp_jid", jidTxtView.getText().toString())
+                .putString("xmpp_password", passwordEditTxt.getText().toString())
                 .putBoolean("xmpp_logged_in", true)
-                .commit();
+                .apply();
 
         //Start the service
         Intent i1 = new Intent(this, RoosterConnectionService.class);
@@ -176,41 +156,11 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
+        return (!TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches());
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            }
-        });
-
-        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-        mProgressView.animate().setDuration(shortAnimTime).alpha(
-                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            }
-        });
+        return password.length() >= 6;
     }
 
 }
